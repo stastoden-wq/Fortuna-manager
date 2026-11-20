@@ -1,0 +1,353 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Pillar 0: Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Global Hardened Primitives ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isVerified() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidLogoMask(val) {
+      return val is string && (val == 'none' || val == 'circle' || val == 'shield');
+    }
+
+    function isValidTimestampCreate(data) {
+      return data.createdAt == request.time && data.updatedAt == request.time;
+    }
+
+    function isValidTimestampUpdate(data) {
+      return data.createdAt == existing().createdAt && data.updatedAt == request.time;
+    }
+
+    // --- Entity Validation Blueprints (Pillar 2: Anti-Update-Gap) ---
+    function isValidClubProfile(data) {
+      return data.keys().hasAll([
+          'name', 'shortName', 'city', 'defaultVenue', 'vkLink',
+          'primaryColor', 'secondaryColor', 'accentColor',
+          'logoUrl', 'logoMask', 'logoScale', 'logoOffsetX', 'logoOffsetY',
+          'altLogoUrl', 'altLogoMask', 'altLogoScale', 'altLogoOffsetX', 'altLogoOffsetY',
+          'version', 'lastBackupAt', 'ownerId', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'name', 'shortName', 'city', 'defaultVenue', 'vkLink',
+          'primaryColor', 'secondaryColor', 'accentColor',
+          'logoUrl', 'logoMask', 'logoScale', 'logoOffsetX', 'logoOffsetY',
+          'altLogoUrl', 'altLogoMask', 'altLogoScale', 'altLogoOffsetX', 'altLogoOffsetY',
+          'version', 'lastBackupAt', 'ownerId', 'createdAt', 'updatedAt'
+        ])
+        && data.ownerId is string && data.ownerId == request.auth.uid && data.ownerId.size() <= 128
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 120
+        && data.shortName is string && data.shortName.size() >= 1 && data.shortName.size() <= 60
+        && data.city is string && data.city.size() <= 80
+        && data.defaultVenue is string && data.defaultVenue.size() <= 140
+        && data.vkLink is string && data.vkLink.size() <= 160
+        && data.primaryColor is string && data.primaryColor.size() <= 20
+        && data.secondaryColor is string && data.secondaryColor.size() <= 20
+        && data.accentColor is string && data.accentColor.size() <= 20
+        && data.logoUrl is string && data.logoUrl.size() <= 750000
+        && isValidLogoMask(data.logoMask)
+        && data.logoScale is number && data.logoScale >= 0.2 && data.logoScale <= 5
+        && data.logoOffsetX is number && data.logoOffsetX >= -500 && data.logoOffsetX <= 500
+        && data.logoOffsetY is number && data.logoOffsetY >= -500 && data.logoOffsetY <= 500
+        && data.altLogoUrl is string && data.altLogoUrl.size() <= 750000
+        && isValidLogoMask(data.altLogoMask)
+        && data.altLogoScale is number && data.altLogoScale >= 0.2 && data.altLogoScale <= 5
+        && data.altLogoOffsetX is number && data.altLogoOffsetX >= -500 && data.altLogoOffsetX <= 500
+        && data.altLogoOffsetY is number && data.altLogoOffsetY >= -500 && data.altLogoOffsetY <= 500
+        && data.version is number && data.version >= 1 && data.version <= 100
+        && data.lastBackupAt is string && data.lastBackupAt.size() <= 64
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidSeason(data) {
+      return data.keys().hasAll(['id', 'name', 'seasonLabel', 'isArchived', 'ownerId', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'name', 'seasonLabel', 'isArchived', 'ownerId', 'createdAt', 'updatedAt'])
+        && isValidId(data.id)
+        && data.ownerId is string && data.ownerId == request.auth.uid && data.ownerId.size() <= 128
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 120
+        && data.seasonLabel is string && data.seasonLabel.size() <= 80
+        && data.isArchived is bool
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidOpponent(data) {
+      return data.keys().hasAll([
+          'id', 'name', 'shortName', 'city', 'logoUrl', 'logoMask',
+          'logoScale', 'logoOffsetX', 'logoOffsetY', 'ownerId', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'name', 'shortName', 'city', 'logoUrl', 'logoMask',
+          'logoScale', 'logoOffsetX', 'logoOffsetY', 'ownerId', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.id)
+        && data.ownerId is string && data.ownerId == request.auth.uid && data.ownerId.size() <= 128
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 120
+        && data.shortName is string && data.shortName.size() >= 1 && data.shortName.size() <= 60
+        && data.city is string && data.city.size() <= 80
+        && data.logoUrl is string && data.logoUrl.size() <= 750000
+        && isValidLogoMask(data.logoMask)
+        && data.logoScale is number && data.logoScale >= 0.2 && data.logoScale <= 5
+        && data.logoOffsetX is number && data.logoOffsetX >= -500 && data.logoOffsetX <= 500
+        && data.logoOffsetY is number && data.logoOffsetY >= -500 && data.logoOffsetY <= 500
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidPlayer(data) {
+      return data.keys().hasAll([
+          'id', 'fullName', 'shortName', 'number', 'role', 'isCaptain', 'isActive',
+          'birthDate', 'photoUrl', 'photoScale', 'photoOffsetX', 'photoOffsetY',
+          'ownerId', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'fullName', 'shortName', 'number', 'role', 'isCaptain', 'isActive',
+          'birthDate', 'photoUrl', 'photoScale', 'photoOffsetX', 'photoOffsetY',
+          'ownerId', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.id)
+        && data.ownerId is string && data.ownerId == request.auth.uid && data.ownerId.size() <= 128
+        && data.fullName is string && data.fullName.size() >= 1 && data.fullName.size() <= 120
+        && data.shortName is string && data.shortName.size() >= 1 && data.shortName.size() <= 60
+        && data.number is number && data.number >= 0 && data.number <= 999
+        && data.role is string && (data.role == 'GK' || data.role == 'FIELD')
+        && data.isCaptain is bool
+        && data.isActive is bool
+        && data.birthDate is string && data.birthDate.size() <= 32
+        && data.photoUrl is string && data.photoUrl.size() <= 750000
+        && data.photoScale is number && data.photoScale >= 0.2 && data.photoScale <= 5
+        && data.photoOffsetX is number && data.photoOffsetX >= -500 && data.photoOffsetX <= 500
+        && data.photoOffsetY is number && data.photoOffsetY >= -500 && data.photoOffsetY <= 500
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidPenalties(val) {
+      return val == null
+        || (
+          val is map
+          && val.keys().hasAll(['our', 'opponent'])
+          && val.keys().hasOnly(['our', 'opponent'])
+          && val.our is number && val.our >= 0 && val.our <= 50
+          && val.opponent is number && val.opponent >= 0 && val.opponent <= 50
+        );
+    }
+
+    function isValidMatch(data) {
+      return data.keys().hasAll([
+          'id', 'date', 'time', 'venue', 'isHome', 'opponentId', 'seasonTagId',
+          'roundLabel', 'halfDuration', 'status', 'isTechnical', 'technicalWinner',
+          'penalties', 'gkHalf1Id', 'gkHalf2Id', 'mvpPlayerId',
+          'lineupPlayerIds', 'startingFiveIds', 'events',
+          'coverPhotoUrl', 'coverPhotoScale', 'coverPhotoOffsetX', 'coverPhotoOffsetY',
+          'ownerId', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'date', 'time', 'venue', 'isHome', 'opponentId', 'seasonTagId',
+          'roundLabel', 'halfDuration', 'status', 'isTechnical', 'technicalWinner',
+          'penalties', 'gkHalf1Id', 'gkHalf2Id', 'mvpPlayerId',
+          'lineupPlayerIds', 'startingFiveIds', 'events',
+          'coverPhotoUrl', 'coverPhotoScale', 'coverPhotoOffsetX', 'coverPhotoOffsetY',
+          'ownerId', 'createdAt', 'updatedAt'
+        ])
+        && isValidId(data.id)
+        && data.ownerId is string && data.ownerId == request.auth.uid && data.ownerId.size() <= 128
+        && data.date is string && data.date.size() <= 32
+        && data.time is string && data.time.size() <= 16
+        && data.venue is string && data.venue.size() <= 160
+        && data.isHome is bool
+        && data.opponentId is string && data.opponentId.size() <= 128
+        && data.seasonTagId is string && data.seasonTagId.size() <= 128
+        && data.roundLabel is string && data.roundLabel.size() <= 80
+        && data.halfDuration is number && data.halfDuration >= 5 && data.halfDuration <= 60
+        && data.status is string && (data.status == 'scheduled' || data.status == 'live' || data.status == 'finished')
+        && data.isTechnical is bool
+        && (data.technicalWinner == null || (data.technicalWinner is string && (data.technicalWinner == 'our' || data.technicalWinner == 'opponent')))
+        && isValidPenalties(data.penalties)
+        && data.gkHalf1Id is string && data.gkHalf1Id.size() <= 128
+        && data.gkHalf2Id is string && data.gkHalf2Id.size() <= 128
+        && data.mvpPlayerId is string && data.mvpPlayerId.size() <= 128
+        && data.lineupPlayerIds is list && data.lineupPlayerIds.size() <= 30
+        && (data.lineupPlayerIds.size() == 0 || data.lineupPlayerIds[0] is string)
+        && data.startingFiveIds is list && data.startingFiveIds.size() <= 11
+        && (data.startingFiveIds.size() == 0 || data.startingFiveIds[0] is string)
+        && data.events is list && data.events.size() <= 120
+        && (data.events.size() == 0 || (data.events[0] is map && data.events[0].id is string))
+        && data.coverPhotoUrl is string && data.coverPhotoUrl.size() <= 750000
+        && data.coverPhotoScale is number && data.coverPhotoScale >= 0.2 && data.coverPhotoScale <= 5
+        && data.coverPhotoOffsetX is number && data.coverPhotoOffsetX >= -500 && data.coverPhotoOffsetX <= 500
+        && data.coverPhotoOffsetY is number && data.coverPhotoOffsetY >= -500 && data.coverPhotoOffsetY <= 500
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidMediaItem(data) {
+      return data.keys().hasAll(['id', 'title', 'category', 'imageUrl', 'createdAtIso', 'ownerId', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'title', 'category', 'imageUrl', 'createdAtIso', 'ownerId', 'createdAt', 'updatedAt'])
+        && isValidId(data.id)
+        && data.ownerId is string && data.ownerId == request.auth.uid && data.ownerId.size() <= 128
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 120
+        && data.category is string && (data.category == 'backdrop' || data.category == 'match' || data.category == 'player')
+        && data.imageUrl is string && data.imageUrl.size() <= 750000
+        && data.createdAtIso is string && data.createdAtIso.size() <= 64
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    // --- Collection Match Blocks ---
+    match /users/{userId}/profile/{profileId} {
+      allow get: if isOwner(userId) && isValidId(profileId) && profileId == 'main';
+      allow list: if isOwner(userId) && resource.data.ownerId == request.auth.uid;
+      allow create: if isOwner(userId)
+        && isValidId(profileId)
+        && profileId == 'main'
+        && isValidClubProfile(incoming())
+        && isValidTimestampCreate(incoming());
+      allow update: if isOwner(userId)
+        && isValidId(profileId)
+        && profileId == 'main'
+        && isValidClubProfile(incoming())
+        && incoming().ownerId == existing().ownerId
+        && isValidTimestampUpdate(incoming())
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'name', 'shortName', 'city', 'defaultVenue', 'vkLink',
+          'primaryColor', 'secondaryColor', 'accentColor',
+          'logoUrl', 'logoMask', 'logoScale', 'logoOffsetX', 'logoOffsetY',
+          'altLogoUrl', 'altLogoMask', 'altLogoScale', 'altLogoOffsetX', 'altLogoOffsetY',
+          'version', 'lastBackupAt', 'updatedAt'
+        ]);
+      allow delete: if isOwner(userId) && isValidId(profileId) && profileId == 'main';
+    }
+
+    match /users/{userId}/seasons/{seasonId} {
+      allow get: if isOwner(userId) && isValidId(seasonId);
+      allow list: if isOwner(userId) && resource.data.ownerId == request.auth.uid;
+      allow create: if isOwner(userId)
+        && isValidId(seasonId)
+        && isValidSeason(incoming())
+        && incoming().id == seasonId
+        && isValidTimestampCreate(incoming());
+      allow update: if isOwner(userId)
+        && isValidId(seasonId)
+        && isValidSeason(incoming())
+        && incoming().id == existing().id
+        && incoming().ownerId == existing().ownerId
+        && isValidTimestampUpdate(incoming())
+        && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'seasonLabel', 'isArchived', 'updatedAt']);
+      allow delete: if isOwner(userId) && isValidId(seasonId);
+    }
+
+    match /users/{userId}/opponents/{opponentId} {
+      allow get: if isOwner(userId) && isValidId(opponentId);
+      allow list: if isOwner(userId) && resource.data.ownerId == request.auth.uid;
+      allow create: if isOwner(userId)
+        && isValidId(opponentId)
+        && isValidOpponent(incoming())
+        && incoming().id == opponentId
+        && isValidTimestampCreate(incoming());
+      allow update: if isOwner(userId)
+        && isValidId(opponentId)
+        && isValidOpponent(incoming())
+        && incoming().id == existing().id
+        && incoming().ownerId == existing().ownerId
+        && isValidTimestampUpdate(incoming())
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'name', 'shortName', 'city', 'logoUrl', 'logoMask',
+          'logoScale', 'logoOffsetX', 'logoOffsetY', 'updatedAt'
+        ]);
+      allow delete: if isOwner(userId) && isValidId(opponentId);
+    }
+
+    match /users/{userId}/players/{playerId} {
+      allow get: if isOwner(userId) && isValidId(playerId);
+      allow list: if isOwner(userId) && resource.data.ownerId == request.auth.uid;
+      allow create: if isOwner(userId)
+        && isValidId(playerId)
+        && isValidPlayer(incoming())
+        && incoming().id == playerId
+        && isValidTimestampCreate(incoming());
+      allow update: if isOwner(userId)
+        && isValidId(playerId)
+        && isValidPlayer(incoming())
+        && incoming().id == existing().id
+        && incoming().ownerId == existing().ownerId
+        && isValidTimestampUpdate(incoming())
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'fullName', 'shortName', 'number', 'role', 'isCaptain', 'isActive',
+          'birthDate', 'photoUrl', 'photoScale', 'photoOffsetX', 'photoOffsetY', 'updatedAt'
+        ]);
+      allow delete: if isOwner(userId) && isValidId(playerId);
+    }
+
+    match /users/{userId}/matches/{matchId} {
+      allow get: if isOwner(userId) && isValidId(matchId);
+      allow list: if isOwner(userId) && resource.data.ownerId == request.auth.uid;
+      allow create: if isOwner(userId)
+        && isValidId(matchId)
+        && isValidMatch(incoming())
+        && incoming().id == matchId
+        && isValidTimestampCreate(incoming());
+      allow update: if isOwner(userId)
+        && isValidId(matchId)
+        && isValidMatch(incoming())
+        && incoming().id == existing().id
+        && incoming().ownerId == existing().ownerId
+        && isValidTimestampUpdate(incoming())
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'date', 'time', 'venue', 'isHome', 'opponentId', 'seasonTagId',
+          'roundLabel', 'halfDuration', 'status', 'isTechnical', 'technicalWinner',
+          'penalties', 'gkHalf1Id', 'gkHalf2Id', 'mvpPlayerId',
+          'lineupPlayerIds', 'startingFiveIds', 'events',
+          'coverPhotoUrl', 'coverPhotoScale', 'coverPhotoOffsetX', 'coverPhotoOffsetY',
+          'updatedAt'
+        ]);
+      allow delete: if isOwner(userId) && isValidId(matchId);
+    }
+
+    match /users/{userId}/mediaGallery/{mediaId} {
+      allow get: if isOwner(userId) && isValidId(mediaId);
+      allow list: if isOwner(userId) && resource.data.ownerId == request.auth.uid;
+      allow create: if isOwner(userId)
+        && isValidId(mediaId)
+        && isValidMediaItem(incoming())
+        && incoming().id == mediaId
+        && isValidTimestampCreate(incoming());
+      allow update: if isOwner(userId)
+        && isValidId(mediaId)
+        && isValidMediaItem(incoming())
+        && incoming().id == existing().id
+        && incoming().ownerId == existing().ownerId
+        && isValidTimestampUpdate(incoming())
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'title', 'category', 'imageUrl', 'createdAtIso', 'updatedAt'
+        ]);
+      allow delete: if isOwner(userId) && isValidId(mediaId);
+    }
+  }
+}

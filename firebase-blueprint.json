@@ -1,0 +1,249 @@
+{
+  "entities": {
+    "ClubProfileDoc": {
+      "title": "ClubProfileDoc",
+      "description": "Club branding, palette, venue defaults, and logo crop configuration for a user's workspace.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "shortName": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "city": { "type": "string", "maxLength": 80 },
+        "defaultVenue": { "type": "string", "maxLength": 140 },
+        "vkLink": { "type": "string", "maxLength": 160 },
+        "primaryColor": { "type": "string", "maxLength": 20 },
+        "secondaryColor": { "type": "string", "maxLength": 20 },
+        "accentColor": { "type": "string", "maxLength": 20 },
+        "logoUrl": { "type": "string", "maxLength": 750000 },
+        "logoMask": { "type": "string", "enum": ["none", "circle", "shield"] },
+        "logoScale": { "type": "number" },
+        "logoOffsetX": { "type": "number" },
+        "logoOffsetY": { "type": "number" },
+        "altLogoUrl": { "type": "string", "maxLength": 750000 },
+        "altLogoMask": { "type": "string", "enum": ["none", "circle", "shield"] },
+        "altLogoScale": { "type": "number" },
+        "altLogoOffsetX": { "type": "number" },
+        "altLogoOffsetY": { "type": "number" },
+        "version": { "type": "number" },
+        "lastBackupAt": { "type": "string", "maxLength": 64 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "name",
+        "shortName",
+        "city",
+        "defaultVenue",
+        "vkLink",
+        "primaryColor",
+        "secondaryColor",
+        "accentColor",
+        "logoUrl",
+        "logoMask",
+        "logoScale",
+        "logoOffsetX",
+        "logoOffsetY",
+        "altLogoUrl",
+        "altLogoMask",
+        "altLogoScale",
+        "altLogoOffsetX",
+        "altLogoOffsetY",
+        "version",
+        "lastBackupAt",
+        "ownerId",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "SeasonDoc": {
+      "title": "SeasonDoc",
+      "description": "Tournament or season tag attached to club matches.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "seasonLabel": { "type": "string", "maxLength": 80 },
+        "isArchived": { "type": "boolean" },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "seasonLabel", "isArchived", "ownerId", "createdAt", "updatedAt"]
+    },
+    "OpponentDoc": {
+      "title": "OpponentDoc",
+      "description": "Opponent team metadata and crest crop settings.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "shortName": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "city": { "type": "string", "maxLength": 80 },
+        "logoUrl": { "type": "string", "maxLength": 750000 },
+        "logoMask": { "type": "string", "enum": ["none", "circle", "shield"] },
+        "logoScale": { "type": "number" },
+        "logoOffsetX": { "type": "number" },
+        "logoOffsetY": { "type": "number" },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "id",
+        "name",
+        "shortName",
+        "city",
+        "logoUrl",
+        "logoMask",
+        "logoScale",
+        "logoOffsetX",
+        "logoOffsetY",
+        "ownerId",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "PlayerDoc": {
+      "title": "PlayerDoc",
+      "description": "Club roster player profile, jersey number, role, and portrait crop settings.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "fullName": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "shortName": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "number": { "type": "number" },
+        "role": { "type": "string", "enum": ["GK", "FIELD"] },
+        "isCaptain": { "type": "boolean" },
+        "isActive": { "type": "boolean" },
+        "birthDate": { "type": "string", "maxLength": 32 },
+        "photoUrl": { "type": "string", "maxLength": 750000 },
+        "photoScale": { "type": "number" },
+        "photoOffsetX": { "type": "number" },
+        "photoOffsetY": { "type": "number" },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "id",
+        "fullName",
+        "shortName",
+        "number",
+        "role",
+        "isCaptain",
+        "isActive",
+        "birthDate",
+        "photoUrl",
+        "photoScale",
+        "photoOffsetX",
+        "photoOffsetY",
+        "ownerId",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "MatchDoc": {
+      "title": "MatchDoc",
+      "description": "Futsal match schedule, live protocol events, lineup, penalties, and optional cover photo.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "date": { "type": "string", "maxLength": 32 },
+        "time": { "type": "string", "maxLength": 16 },
+        "venue": { "type": "string", "maxLength": 160 },
+        "isHome": { "type": "boolean" },
+        "opponentId": { "type": "string", "maxLength": 128 },
+        "seasonTagId": { "type": "string", "maxLength": 128 },
+        "roundLabel": { "type": "string", "maxLength": 80 },
+        "halfDuration": { "type": "number" },
+        "status": { "type": "string", "enum": ["scheduled", "live", "finished"] },
+        "isTechnical": { "type": "boolean" },
+        "technicalWinner": { "type": "string", "maxLength": 16 },
+        "penalties": { "type": "object" },
+        "gkHalf1Id": { "type": "string", "maxLength": 128 },
+        "gkHalf2Id": { "type": "string", "maxLength": 128 },
+        "mvpPlayerId": { "type": "string", "maxLength": 128 },
+        "lineupPlayerIds": { "type": "array" },
+        "startingFiveIds": { "type": "array" },
+        "events": { "type": "array" },
+        "coverPhotoUrl": { "type": "string", "maxLength": 750000 },
+        "coverPhotoScale": { "type": "number" },
+        "coverPhotoOffsetX": { "type": "number" },
+        "coverPhotoOffsetY": { "type": "number" },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "id",
+        "date",
+        "time",
+        "venue",
+        "isHome",
+        "opponentId",
+        "seasonTagId",
+        "roundLabel",
+        "halfDuration",
+        "status",
+        "isTechnical",
+        "technicalWinner",
+        "penalties",
+        "gkHalf1Id",
+        "gkHalf2Id",
+        "mvpPlayerId",
+        "lineupPlayerIds",
+        "startingFiveIds",
+        "events",
+        "coverPhotoUrl",
+        "coverPhotoScale",
+        "coverPhotoOffsetX",
+        "coverPhotoOffsetY",
+        "ownerId",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "MediaItemDoc": {
+      "title": "MediaItemDoc",
+      "description": "Reusable club media gallery photo (arena backdrop, match photo, or event cover).",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "category": { "type": "string", "enum": ["backdrop", "match", "player"] },
+        "imageUrl": { "type": "string", "maxLength": 750000 },
+        "createdAtIso": { "type": "string", "maxLength": 64 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "category", "imageUrl", "createdAtIso", "ownerId", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/profile/{profileId}": {
+      "schema": { "$ref": "#/entities/ClubProfileDoc" },
+      "description": "Single club profile document (profileId == 'main') owned by userId."
+    },
+    "/users/{userId}/seasons/{seasonId}": {
+      "schema": { "$ref": "#/entities/SeasonDoc" },
+      "description": "Tournament and season tags owned by userId."
+    },
+    "/users/{userId}/opponents/{opponentId}": {
+      "schema": { "$ref": "#/entities/OpponentDoc" },
+      "description": "Opponent club records owned by userId."
+    },
+    "/users/{userId}/players/{playerId}": {
+      "schema": { "$ref": "#/entities/PlayerDoc" },
+      "description": "Club roster player profiles owned by userId."
+    },
+    "/users/{userId}/matches/{matchId}": {
+      "schema": { "$ref": "#/entities/MatchDoc" },
+      "description": "Futsal match schedule, live events, and protocol documents owned by userId."
+    },
+    "/users/{userId}/mediaGallery/{mediaId}": {
+      "schema": { "$ref": "#/entities/MediaItemDoc" },
+      "description": "Reusable club media library images owned by userId."
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Клубная Медиа-Студия",
+  "description": "Автономная PWA медиа-студия и матч-центр для мини-футбольного клуба: живой протокол, статистика игроков и вратарей, генерация брендированных 2D Canvas постеров для ВКонтакте.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
